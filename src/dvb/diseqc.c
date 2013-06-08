@@ -55,6 +55,11 @@ diseqc_setup(int fe_fd, int lnb_num, int voltage, int band,
   /* verify lnb number and diseqc data */
   if(lnb_num < 0 || lnb_num >=64 || i < 0 || i >= 16 || j < 0 || j >= 16)
     return -1;
+  /* paranoia check: we must not come here in case of unicable... */
+  if (version > 1) {
+    tvhlog(LOG_ERR, "diseqc", "diseqc_setup called but version is %d", version);
+    return -1;
+  }
 
   /* turn off continuous tone */
   tvhtrace("diseqc", "disabling continuous tone");

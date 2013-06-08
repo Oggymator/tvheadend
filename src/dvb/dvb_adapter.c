@@ -351,8 +351,8 @@ dvb_adapter_set_nitoid(th_dvb_adapter_t *tda, int nitoid)
 void
 dvb_adapter_set_diseqc_version(th_dvb_adapter_t *tda, unsigned int v)
 {
-  if(v > 1)
-    v = 1;
+  if(v > 2)
+    v = 2;
 
   if(tda->tda_diseqc_version == v)
     return;
@@ -360,7 +360,7 @@ dvb_adapter_set_diseqc_version(th_dvb_adapter_t *tda, unsigned int v)
   lock_assert(&global_lock);
 
   tvhlog(LOG_NOTICE, "dvb", "Adapter \"%s\" DiSEqC version set to: %s",
-	 tda->tda_displayname, v ? "1.1 / 2.1" : "1.0 / 2.0" );
+	 tda->tda_displayname, v==0 ? "1.1 / 2.1" : v==1 ? "1.0 / 2.0" : "EN50494" );
 
   tda->tda_diseqc_version = v;
   tda_save(tda);

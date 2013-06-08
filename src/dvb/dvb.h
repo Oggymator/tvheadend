@@ -55,6 +55,9 @@ typedef struct dvb_satconf {
   char *sc_id;
   TAILQ_ENTRY(dvb_satconf) sc_adapter_link;
   int sc_port;                   // diseqc switchport (0 - 63)
+  int sc_uni_qrg;                // unicable freq, SCR# and pin
+  int sc_uni_scr;
+  int sc_uni_pin;
 
   char *sc_name;
   char *sc_comment;
