@@ -120,3 +120,71 @@ diseqc_voltage_off(int fe_fd)
   }
   return 0;
 }
+
+/*
+ * input: same as diseqc_setup, plus EN50494 SCR#, frequency, PIN.
+ * the SCR# is from 0 to 7, lnb_num is the "switch bank" for multi-input
+ * SCR switches (satellite 0 or 1). If lnb_num is 2, this will send the
+ * shutdown command to the SCR switch.
+ * returns the real frequency the frontend needs to be tuned to
+ * (usually uni_qrg +- a few khz)
+ */
+int
+en50494_setup(int fe_fd, int lnb_num, int voltage, int band, int freq,
+              int uni_scr, int uni_qrg, int uni_pin)
+{
+  __u8 frame, addr, cmd, d1, d2, d3, m_len;
+
+  if (uni_scr < 0 || uni_scr > 7) {
+    tvhlog(LOG_ERR, "en50494", "uni_scr out of range");
+    return -1;
+  }
+  frame = 0xe0;
+  addr  = 0x10;
+  cmd   = 0x5a;
+  d1 = d2 = d3 = 0x00;
+  m_len = 5;
+  unsigned int t = (freq / 1000 + uni_qrg + 2) / 4 - 350;
+  if (lnb_num < 2 && t >= 1024) {
+    tvhlog(LOG_ERR, "en50494", "OOPS: t >= 1024?");
+    return -1;
+  }
+  if (uni_pin >= 0 && uni_pin < 0x100) {
+    cmd   = 0x5c;
+    d3    = uni_pin;
+    m_len = 6;
+  }
+  int ret = (t + 350) * 4000 - freq;
+  d1 = (uni_scr << 5);      /* adress */
+  if (lnb_num < 2) {        /* lnb_num = 0/1 => tune, lnb_num = 2 => standby */
+    d1 |= (t >> 8)       |  /* highest 3 bits of t */
+          (lnb_num << 4) |  /* input 0/1 */
+          (voltage << 3) |  /* horizontal == 0x08 */
+          (band) << 2;      /* high_band  == 0x04 */
+    d2 = t & 0xFF;
+  }
+
+  /* for debugging, can be disabled later */
+  tvhlog(LOG_NOTICE, "en50494",
+           "fe_fd=%i, lnb_num=%i, voltage=%i, band=%i, freq=%i, ret=%i",
+           fe_fd, lnb_num, voltage, band, freq, ret);
+
+  /* just make sure tone is off */
+  ioctl(fe_fd, FE_SET_TONE, SEC_TONE_OFF);
+
+  if (ioctl(fe_fd, FE_SET_VOLTAGE, SEC_VOLTAGE_18)) {
+    tvhlog(LOG_ERR, "en50494", "error setting lnb voltage to 18V");
+    return -1;
+  }
+  msleep(15); /* en50494 says: >4ms and < 22 ms */
+
+  if (diseqc_send_msg(fe_fd, frame, addr, cmd, d1, d2, d3, m_len))
+    return -1;
+  msleep(50); /* en50494 says: >2ms and < 60 ms */
+
+  if (ioctl(fe_fd, FE_SET_VOLTAGE, SEC_VOLTAGE_13)) {
+    tvhlog(LOG_ERR, "en50494", "error setting lnb voltage back to 13V");
+    return -1;
+  }
+  return ret;
+}
