@@ -162,8 +162,9 @@ extjs_dvbadapter(http_connection_t *hc, const char *remain, void *opaque)
     htsmsg_add_u32(r, "grace_period", tda->tda_grace_period);
     htsmsg_add_str(r, "diseqcversion", 
 		   ((const char *[]){"DiSEqC 1.0 / 2.0",
-				       "DiSEqC 1.1 / 2.1"})
-		   [tda->tda_diseqc_version % 2]);
+				       "DiSEqC 1.1 / 2.1",
+				       "EN50494 SCR / Unicable"})
+		   [tda->tda_diseqc_version % 3]);
     htsmsg_add_str(r, "diseqcrepeats",
 		   ((const char *[]){"0", "1", "3"})
 		   [tda->tda_diseqc_repeats % 3]);
@@ -219,6 +220,8 @@ extjs_dvbadapter(http_connection_t *hc, const char *remain, void *opaque)
 	dvb_adapter_set_diseqc_version(tda, 0);
       else if(!strcmp(s, "DiSEqC 1.1 / 2.1"))
 	dvb_adapter_set_diseqc_version(tda, 1);
+      else if(!strcmp(s, "EN50494 SCR / Unicable"))
+	dvb_adapter_set_diseqc_version(tda, 2);
     }
 
     if((s = http_arg_get(&hc->hc_req_args, "diseqcrepeats")) != NULL) {

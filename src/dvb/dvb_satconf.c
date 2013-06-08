@@ -115,6 +115,9 @@ satconf_record_build(dvb_satconf_t *sc)
   htsmsg_add_str(m, "name", sc->sc_name ?: "");
   htsmsg_add_str(m, "comment", sc->sc_comment ?: "");
   htsmsg_add_str(m, "lnb", sc->sc_lnb);
+  htsmsg_add_s32(m, "uni_scr", sc->sc_uni_scr);
+  htsmsg_add_s32(m, "uni_qrg", sc->sc_uni_qrg);
+  htsmsg_add_s32(m, "uni_pin", sc->sc_uni_pin);
   return m;
 }
 
@@ -128,6 +131,7 @@ satconf_entry_update(void *opaque, const char *id, htsmsg_t *values,
 {
   th_dvb_adapter_t *tda = opaque;
   uint32_t u32;
+  int32_t  s32;
   dvb_satconf_t *sc;
 
   if((sc = dvb_satconf_entry_find(tda, id, maycreate)) == NULL)
@@ -141,6 +145,12 @@ satconf_entry_update(void *opaque, const char *id, htsmsg_t *values,
   
   if(!htsmsg_get_u32(values, "port", &u32))
     sc->sc_port = u32;
+  if(!htsmsg_get_s32(values, "uni_scr", &s32))
+    sc->sc_uni_scr = s32;
+  if(!htsmsg_get_s32(values, "uni_qrg", &s32))
+    sc->sc_uni_qrg = s32;
+  if(!htsmsg_get_s32(values, "uni_pin", &s32))
+    sc->sc_uni_pin = s32;
 
   satconf_notify(tda);
 
@@ -240,6 +250,9 @@ dvb_satconf_init(th_dvb_adapter_t *tda)
     sc = dvb_satconf_entry_find(tda, NULL, 1);
     sc->sc_comment = strdup("Default satconf entry");
     sc->sc_name = strdup("Default (Port 0, Universal LNB)");
+    sc->sc_uni_scr = 0;
+    sc->sc_uni_qrg = 1210;
+    sc->sc_uni_pin = -1; /* no PIN */
 
     r = satconf_record_build(sc);
     dtable_record_store(dt, sc->sc_id, r);

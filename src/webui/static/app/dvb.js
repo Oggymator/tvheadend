@@ -1283,7 +1283,7 @@ tvheadend.dvb_adapter_general = function(adapterData, satConfStore) {
 			allowBlank : false,
 			mode : 'remote',
 			triggerAction : 'all',
-			store : [ 'DiSEqC 1.0 / 2.0', 'DiSEqC 1.1 / 2.1' ]
+			store : [ 'DiSEqC 1.0 / 2.0', 'DiSEqC 1.1 / 2.1', 'EN50494 SCR / Unicable' ]
 		});
 		items.push(v);
 
@@ -1429,6 +1429,27 @@ tvheadend.dvb_satconf = function(adapterId, lnbStore) {
 			maxValue : 63
 		})
 	}, {
+		header : "SCR#",
+		dataIndex : 'uni_scr',
+		editor : new fm.NumberField({
+			minValue : 0,
+			maxValue : 7
+		})
+	}, {
+		header : "Unicable freq",
+		dataIndex : 'uni_qrg',
+		editor : new fm.NumberField({
+			minValue : 0,
+			maxValue : 2500
+		})
+	}, {
+		header : "Unicable PIN",
+		dataIndex : 'uni_pin',
+		editor : new fm.NumberField({
+			minValue : -1,
+			maxValue : 255
+		})
+	}, {
 		header : "LNB type",
 		dataIndex : 'lnb',
 		width : 200,
@@ -1449,7 +1470,7 @@ tvheadend.dvb_satconf = function(adapterId, lnbStore) {
 		editor : new fm.TextField()
 	} ]});
 
-	var rec = Ext.data.Record.create([ 'name', 'port', 'comment', 'lnb' ]);
+	var rec = Ext.data.Record.create([ 'name', 'port', 'comment', 'lnb', 'uni_scr', 'uni_qrg', 'uni_pin' ]);
 
 	return new tvheadend.tableEditor('Satellite config', 'dvbsatconf/'
 		+ adapterId, cm, rec, null, null, null);
