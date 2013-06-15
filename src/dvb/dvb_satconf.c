@@ -75,6 +75,7 @@ dvb_satconf_entry_find(th_dvb_adapter_t *tda, const char *id, int create)
   sc = calloc(1, sizeof(dvb_satconf_t));
   sc->sc_id = strdup(id);
   sc->sc_lnb = strdup("Universal");
+  sc->sc_uni_pin = -1;
   TAILQ_INSERT_TAIL(&tda->tda_satconfs, sc, sc_adapter_link);  
 
   return sc;
